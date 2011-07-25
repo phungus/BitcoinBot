@@ -61,18 +61,11 @@ my $bot = Bot::BasicBot::Pluggable->new(
 #	ignore_list	=> [qw(user1 user2)],
 );
 
-#$bot->log;
-$bot->loglevel("debug");
+#$bot->loglevel("debug");
 
 ### Load Modules ###
 
-$bot->load("Seen");
-
-#my $google = $bot->load("Google");
-#$google->set("google_key", "xxxxxxxxxxxxxxx");
-
-#$bot->load("Infobot");
-$bot->load("Title");
+#$bot->load("Module");
 
 $bot->run();
 
