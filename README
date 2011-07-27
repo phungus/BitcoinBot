@@ -10,3 +10,8 @@ Hopefully, this will be a bitcoin-enabled IRC bot using a plugin architecture.
 
 
 
+TODO:
+Setup Ident system
+Setup Bitcoin payment module
+Setup Admin functions
+
