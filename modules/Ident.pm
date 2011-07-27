@@ -1,6 +1,6 @@
-package Bot::BasicBot::Pluggable::Module::Auth;
+package Bot::BasicBot::Pluggable::Module::Ident;
 BEGIN {
-  $Bot::BasicBot::Pluggable::Module::Auth::VERSION = '0.93';
+  $Bot::BasicBot::Pluggable::Module::Ident = '0.1';
 }
 use base qw(Bot::BasicBot::Pluggable::Module);
 use warnings;
@@ -9,34 +9,21 @@ use Crypt::SaltedHash;
 
 sub init {
     my $self = shift;
-    $self->config(
-        {
-            password_admin  => "julia",
-            allow_anonymous => 0,
-        }
-    );
-    # A list of admin commands handled by this module and their usage
-    $self->{_admin_commands} = {
-        auth     => '<username> <password>',
-        adduser  => '<username> <password>',
-        deluser  => '<username>',
-        password => '<old password> <new password>',
-        users    => '',
-    };
+
+#    $self->{_ident_commands} = {
+#		register	=> '',
+#        ident		=> '<password>',
+#    };
 }
 
 sub help {
     my $self = shift;
-    return "Authenticator for admin-level commands. Usage: "
-        . join ", ", map { "!$_ $self->{_admin_commands}{$_}" }
-            keys %{ $self->{_admin_commands} };
+    return "Ident command. Supply password if you have one, checks internal db, returns a new one if none supplied and no account.\n"
 }
 
-sub admin {
+sub ident {
     my ( $self, $mess ) = @_;
     my $body = $mess->{body};
-
-    return unless ( $body and length($body) > 4 );
 
     # we don't care about commands that don't start with '!'.
     return 0 unless $body =~ /^!/;
@@ -63,30 +50,33 @@ sub admin {
         return "Usage: !$command $usage_message";
     }
 
-    # system commands have to be directly addressed...
-    return 1 unless $mess->{address};
+    # ident commands have to be directly addressed...
+	return 1 unless $mess->{address};
 
     # ...and in a privmsg.
     return "Admin commands in privmsg only, please."
       unless !defined $mess->{channel} || $mess->{channel} eq 'msg';
 
-    if ($command eq 'auth') {
-        my ( $user, $pass ) = @params;
+
+	if ($command eq 'ident') {
+		my ($user, $pass) = @params;
+
+		return 
+	
+###	# Probably needs a better storage method	
+
         my $stored = $self->get( "password_" . $user );
 
         if ( _check_password($pass, $stored) ) {
             $self->{auth}{ $mess->{who} }{time}     = time();
             $self->{auth}{ $mess->{who} }{username} = $user;
-            if ( $user eq "admin" and $pass eq "julia" ) {
-                return
-"Authenticated. But change the password - you're using the default.";
-            }
             return "Authenticated.";
         }
         else {
             delete $self->{auth}{ $mess->{who} };
-            return "Wrong password.";
+            return "Invalid Credentials.";
         }
+
     } elsif ( $command eq 'adduser' ) {
         my ( $user, $pass ) = @params;
         if ( $self->authed( $mess->{who} ) ) {
