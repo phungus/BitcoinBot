@@ -1,13 +1,26 @@
 package Bot::BasicBot::Pluggable::Module::Bitcoin;
+
 use base qw(Bot::BasicBot::Pluggable::Module);
 use warnings;
 use strict;
+use Finance::Bitcoin;
 
 our $VERSION = '0.1';
+
 
 sub init {
     my $self = shift;
 #    $self->config( { config_item => 1 } );
+
+
+	my $rpcuser = $self->get("rpcuser");
+	my $rpcpass = $self->get("rpcpass");
+	my $rpchost = $self->get("rpchost");
+	my $rpcport = $self->get("rpcport");
+	my $uri     = 'http://$rpcuser:$rpcpass@$rpchost:$rpcport/';
+	my $wallet  = Finance::Bitcoin::Wallet->new($uri);
+# Need to pass wallet object 
+
 }
 
 sub help {
@@ -15,13 +28,20 @@ sub help {
 }
 
 sub told {
-
 	my ($self, $mess) = @_;
 	my $body = $mess->{body};
 	return 0 unless defined $body;
-    return if !$self->ident( $mess->{who} );
+    #return if !$self->ident( $mess->{who} );
 	return unless $mess->{address};
 
+
+	if ($body =~ /!getbalance/) {
+		my $bal = $wallet
+		return "Bitcoin getbalance for $mess->{who}: $bal\n";
+	}
+	elsif ($body =~ /!bitcoin/) {
+		return "Other Bitcoin Operation\n";
+	}
 }
 
 1;

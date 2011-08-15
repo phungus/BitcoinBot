@@ -21,107 +21,57 @@ sub help {
     return "Ident command. Supply password if you have one, checks internal db, returns a new one if none supplied and no account.\n"
 }
 
+
+sub told {
+    my ( $self, $mess ) = @_;
+    my $body = $mess->{body};
+    return unless defined $body;
+	return unless $body =~ /^!/;
+    return unless $mess->{address};
+
+	return "chan: $mess->{channel} who: $mess->{who} address: $mess->{address} body: $body\n";
+
+    my ( $command, $param ) = split( /\s+/, $body, 2 );
+    $command = lc($command);
+#    return unless $command =~ /^(ident|register|logout)$/;
+
+    return "Identification commands in /msg only, please."
+    	unless !defined $mess->{channel} || $mess->{channel} eq 'msg';
+
+	if ($command =~ /^ident/) {
+	return "Ident: $body\n";
+	}
+	
+#    if (!$self->authed($mess->{who})) {
+#        return "Sorry, you must be authenticated to do that.";
+#    }
+
+#    if ( $command eq "join" ) {
+#        $self->add_channel($param);
+#        return "Ok.";
+#	 } 
+}
+
+
 sub ident {
     my ( $self, $mess ) = @_;
     my $body = $mess->{body};
-
-    # we don't care about commands that don't start with '!'.
-    return 0 unless $body =~ /^!/;
-
-    # Find out what the command is:
-    my ($command, $params) = split '\s+', $mess->{body}, 2;
-    $command =~  s/^!//;
-    $command = lc $command;
-    my @params;
-    @params = split /\s+/, $params if defined $params;
-
-    # If it's not a command we handle, go no further:
-    return 0 unless exists $self->{_admin_commands}{$command};
-
-    # Basic usage check: the usage message declares which params are taken, so
-    # check we have the right number:
-    my $usage_message = $self->{_admin_commands}{$command};
+	print "Ident event: $body\n";
     
-    # Count how many params we want (assignment to empty list gets us list
-    # context, then assigning to scalar results in the count):
-    my $want_params = () =  $usage_message =~ m{<.+?>}g;
-
-    if (scalar @params != $want_params) {
-        return "Usage: !$command $usage_message";
-    }
+	# we don't care about commands that don't start with '!'.
+    return 0 unless $body =~ /^!/;
 
     # ident commands have to be directly addressed...
 	return 1 unless $mess->{address};
 
     # ...and in a privmsg.
-    return "Admin commands in privmsg only, please."
-      unless !defined $mess->{channel} || $mess->{channel} eq 'msg';
+    return "Identification commands in /msg only, please."
+    	unless !defined $mess->{channel} || $mess->{channel} eq 'msg';
 
-
-	if ($command eq 'ident') {
-		my ($user, $pass) = @params;
-
-		return 
-	
-###	# Probably needs a better storage method	
-
-        my $stored = $self->get( "password_" . $user );
-
-        if ( _check_password($pass, $stored) ) {
-            $self->{auth}{ $mess->{who} }{time}     = time();
-            $self->{auth}{ $mess->{who} }{username} = $user;
-            return "Authenticated.";
-        }
-        else {
-            delete $self->{auth}{ $mess->{who} };
-            return "Invalid Credentials.";
-        }
-
-    } elsif ( $command eq 'adduser' ) {
-        my ( $user, $pass ) = @params;
-        if ( $self->authed( $mess->{who} ) ) {
-            $self->set( "password_" . $user, _hash_password($pass) );
-            return "Added user $user.";
-        }
-        else {
-            return "You need to authenticate.";
-        }
-    } elsif ( $command eq 'deluser' ) {
-        my ($user) = @params;
-        if ( $self->authed( $mess->{who} ) ) {
-            $self->unset( "password_" . $user );
-            return "Deleted user $user.";
-        }
-        else {
-            return "You need to authenticate.";
-        }
-    } elsif ( $command eq 'password' ) {
-        my ( $old_pass, $pass ) = @params;
-        if ( $self->authed( $mess->{who} ) ) {
-            my $username = $self->{auth}{ $mess->{who} }{username};
-            if (_check_password($old_pass, $self->get("password_$username")) ) {
-                $self->set( "password_$username", _hash_password($pass) );
-                return "Changed password to $pass.";
-            }
-            else {
-                return "Wrong password.";
-            }
-        }
-        else {
-            return "You need to authenticate.";
-        }
-    } elsif ( $command eq 'users' ) {
-        return "Users: "
-          . join( ", ",
-            map { my $user = $_; $user =~ s/^password_// ? $user : () }
-              $self->store_keys( res => ["^password"] ) )
-          . ".";
-    
-    }
-    
+	return "Ident: $body\n";
 }
 
-sub authed {
+sub idented {
     my ( $self, $username ) = @_;
     return 1
       if (  $self->{auth}{$username}{time}
