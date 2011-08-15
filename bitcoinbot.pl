@@ -14,8 +14,8 @@ use Config::JSON;
 
 my $V = "0.1";
 
-my $ConfigFile = "./BitcoinBot.conf";
-my $config = (!-e $ConfigFile) ? Config::JSON->create($ConfigFile) : Config::JSON->new($ConfigFile);
+my $configFile = "./BitcoinBot.conf";
+my $config = (!-e $configFile) ? Config::JSON->create($configFile) : Config::JSON->new($configFile);
 
 $config->addToArray("Channels","#BitcoinBot") 		unless ($config->get("Channels"));
 $config->set("server","irc.freenode.net") 			unless ($config->get("server"));
@@ -31,21 +31,21 @@ $config->set("rpcport",8332) 						unless ($config->get("rpcport"));
 
 # This could use a nice full-screen interface library. It feels so scripty.
 
-my $BotNick 	= $config->get("nick");
-my $UserName 	= $config->get("username");
-my @Channels	= @{$config->get("Channels")};
-my $IrcServer	= $config->get("server");
-my $IrcPort		= $config->get("port");
+my $botNick 	= $config->get("nick");
+my $userName 	= $config->get("username");
+my @channels	= @{$config->get("Channels")};
+my $ircServer	= $config->get("server");
+my $ircPort		= $config->get("port");
 
 print "=============================\n";
 print "= BitcoinBot - Version $V  =\n";
 print "=============================\n\n";
-print "Using Config: $ConfigFile\n";
-print "Nick $BotNick ($UserName)\n";
+print "Using Config: $configFile\n";
+print "Nick $botNick ($userName)\n";
 print "Channel(s): ";
-print foreach (@Channels);
+print foreach (@channels);
 print "\n";
-print "Connecting to $IrcServer on port $IrcPort\n"; 
+print "Connecting to $ircServer on port $ircPort\n"; 
 
 
 ### Bitcoin Init ###
@@ -62,12 +62,12 @@ my $wallet  = Finance::Bitcoin::Wallet->new($uri);
 ### Bot Init ###
 
 my $bot = Bot::BasicBot::Pluggable->new(
-    channels	=> @Channels,
-    server		=> $IrcServer,
-	port		=> $IrcPort,
-    nick    	=> $BotNick,
-	username	=> $UserName,
-	name		=> $UserName,
+    channels	=> @channels,
+    server		=> $ircServer,
+	port		=> $ircPort,
+    nick    	=> $botNick,
+	username	=> $userName,
+	name		=> $userName,
 	ssl			=> 1,
 #	ignore_list	=> [qw(user1 user2)],
 );
@@ -76,9 +76,17 @@ $bot->loglevel("debug");
 
 ### Load Modules ###
 
+# We use Auth and Loader only for administrative functions
+#  and because we want to be able to quickly turn off individual games,
+#  but not necessarily stop all games in progress in the event of a problem.
+# May want a quick kill switch for everything.
+# Have to build a separate Ident module for authentication users
+# Even authenticated admins should not be able to change any game playing data
+#  or player account addresses.
 
 $bot->load("Auth");
 $bot->load("Loader");
 
 $bot->run();
+
 
