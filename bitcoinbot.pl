@@ -11,6 +11,8 @@ use warnings;
 use strict;
 use Bot::BasicBot::Pluggable;
 use Config::JSON;
+use Finance::Bitcoin;
+
 
 my $V = "0.1";
 
@@ -27,6 +29,11 @@ $config->set("rpcuser","bitcoinrpcuser") 			unless ($config->get("rpcuser"));
 $config->set("rpcpass","longbitcoinrpcpassword") 	unless ($config->get("rpcpass"));
 $config->set("rpchost","127.0.0.1") 				unless ($config->get("rpchost"));
 $config->set("rpcport",8332) 						unless ($config->get("rpcport"));
+
+my $uri     = 'http://' . $config->get("rpcuser") .
+                    ':' . $config->get("rpcpass") .
+                    '@' . $config->get("rpchost") .
+                    ':' . $config->get("rpcport") . '/';
 
 
 # This could use a nice full-screen interface library. It feels so scripty.
@@ -48,17 +55,6 @@ print "\n";
 print "Connecting to $ircServer on port $ircPort\n"; 
 
 
-### Bitcoin Init ###
-
-my $rpcuser = $self->get("rpcuser");
-my $rpcpass = $self->get("rpcpass");
-my $rpchost = $self->get("rpchost");
-my $rpcport = $self->get("rpcport");
-
-my $uri     = 'http://$rpcuser:$rpcpass@$rpchost:$rpcport/';
-my $wallet  = Finance::Bitcoin::Wallet->new($uri);
-
-
 ### Bot Init ###
 
 my $bot = Bot::BasicBot::Pluggable->new(
@@ -70,7 +66,13 @@ my $bot = Bot::BasicBot::Pluggable->new(
 	name		=> $userName,
 	ssl			=> 1,
 #	ignore_list	=> [qw(user1 user2)],
+	rpcuser		=> $config->get("rpcuser"),
+	rpcpass		=> $config->get("rpcpass"),
+	rpchost		=> $config->get("rpchost"),
+	rpcport		=> $config->get("rpcport"),
+	wallet 		=> Finance::Bitcoin::Wallet->new($uri)
 );
+
 
 $bot->loglevel("debug");
 
