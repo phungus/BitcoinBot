@@ -5,7 +5,7 @@ use Class::Accessor 'antlers';
 use Finance::Bitcoin;
 use Scalar::Util qw[blessed];
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 has api => (is => 'rw');
 
@@ -27,8 +27,9 @@ sub new
 
 sub balance
 {
-	my ($self) = @_;
-	return $self->api->call('getbalance');
+	my ($self, $account, $minconf) = @_;
+	$minconf = 1 unless $minconf;
+	$account ? return $self->api->call('getbalance', $account, $minconf) : return $self->api->call('getbalance');
 }
 
 sub pay
@@ -48,10 +49,31 @@ sub pay
 	return $self->api->call('sendtoaddress', $address, $amount);
 }
 
+sub payfrom
+{
+	my ($self, $account, $address, $amount) = @_;
+
+	$account = '' unless $account;
+	croak "Must provide an address"
+		unless $address;
+	croak "Must provide an amount"
+		unless $amount;
+		
+	if (blessed($address))
+	{
+		$address = $address->address;
+	}
+
+	return $self->api->call('sendtoaddress', $account, $address, $amount);
+}
+
 sub create_address
 {
-	my ($self, $label) = @_;
-	my $address_id = $self->api->call('getnewaddress');
+	my ($self, $label, $account) = @_;
+	
+	(defined $account) ? $account = $account : $account = '';
+
+	my $address_id = $self->api->call('getnewaddress', $account);
 	my $address    = Finance::Bitcoin::Address->new($self->api, $address_id);
 	$address->label($label)
 		if $label;

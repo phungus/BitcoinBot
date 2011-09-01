@@ -70,11 +70,16 @@ my $bot = Bot::BasicBot::Pluggable->new(
 	rpcpass		=> $config->get("rpcpass"),
 	rpchost		=> $config->get("rpchost"),
 	rpcport		=> $config->get("rpcport"),
-	wallet 		=> Finance::Bitcoin::Wallet->new($uri)
+	wallet 		=> Finance::Bitcoin::Wallet->new($uri),
+	loglevel	=> "debug",
+	store		=> "DBI",
+	dsn			=> "DBI:mysql:bbbdb",
+	table		=> "bitcoinbot",
+	user		=> "bbbdbuser",
+	password	=> "aHh8qvUBDHyXILnI0EVG",
 );
 
 
-$bot->loglevel("debug");
 
 ### Load Modules ###
 

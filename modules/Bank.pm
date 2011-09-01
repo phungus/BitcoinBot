@@ -25,12 +25,14 @@ sub told {
 	return unless $mess->{address};
 	
 	if ($body =~ /~bal/) {
-		my $balance = $self->bot->{wallet}->balance;
+		my $balance = $self->bot->{wallet}->balance($mess->{who}, 1);
 		return "Bitcoin getbalance for $mess->{who}: $balance\n";
 	}
 	elsif ($body =~ /~dep/) {
 		# Deposit procedure
-		return "";
+		my $newaddress = $self->bot->{wallet}->create_address($mess->{who});
+		#newaddress(account)
+		return "Deposit Address: {$newaddress}";
 	}
 	elsif ($body =~ /~wit/) {
 		# Withdraw procedure

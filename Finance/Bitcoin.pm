@@ -4,7 +4,7 @@ use Finance::Bitcoin::API;
 use Finance::Bitcoin::Wallet;
 use Finance::Bitcoin::Address;
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 1;
 
