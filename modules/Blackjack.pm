@@ -63,9 +63,9 @@ sub told {
         );
 
 		$self->set($player => {
-			bshoe => \$bshoe,
-			phand => \$phand,
-			dhand => \$dhand,
+			bshoe => $bshoe,
+			phand => $phand,
+			dhand => $dhand,
 			bgame => 1
 		});
 
@@ -82,16 +82,36 @@ sub told {
 	}
 	elsif ($body =~ /hit/) {
 
-		my $pstore = {$self->get($player)};
-		my $phand = $pstore->{'phand'};
+		my $pstore = \$self->get($player);
+		my $dhand = $$pstore->{"dhand"};
+		my $phand = $$pstore->{"phand"};
+		my $bgame = $$pstore->{"bgame"};
+
+		return "No game started -- .bj to start a new one!" if ($bgame == 0);
+
 		my $msg = $phand->count_as_string();
-		$self->say(
-            channel => "msg",
-			who => $player,
-			body => "Player has: $msg"
-        );
-		# if bust, no hit/stand
-		return "Command: stand hit";
+
+		if ($msg > 21) {
+			$self->say(
+        	    channel => "msg",
+				who => $player,
+				body => "$player busts with: $msg"
+        	);	
+			return "$player lost. Try again!";
+		}
+		else {
+			$self->say(
+	            channel => "msg",
+				who => $player,
+				body => "$player now has: $msg"
+	        );
+			if ($msg == 21) {
+				return "Command: stand";
+			}
+			else {
+				return "Command: hit, stand";
+			}
+		}
 
 	}
 	elsif ($body =~ /stand/) {
