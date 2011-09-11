@@ -27,83 +27,108 @@ sub told {
 	
 	if ($body =~ /.bj/) {
 
-		my $msg;
+		if ($self->var($player)) {
+			_privatesay($self, $player, "Have player hash");
+			if ($self->get($player)->{"bgame"} == 1) {
+				return "Game already started! Command: hit, stand";
+			}
+			$self->unset($player);
+		}
+
+		my $msgd;
+		my $msgp;
 		my $shoe = Games::Blackjack::Shoe->new(nof_decks => 4);
 		my $dhand = Games::Blackjack::Hand->new(shoe => $shoe);
 		my $phand = Games::Blackjack::Hand->new(shoe => $shoe);
 
-### This may not be right
-		$self->set($player => {
-			bgame	=> 1}
-#			shoe	=> $shoe,
-#			phand	=> $phand,
-#			dhand	=> $dhand,
-		);
-###
-
-		my $test = $self->get($player)->{"bgame"};
-		_privatesay($self, $player, "New BlackJack game for $player: $test");
-
 		# Dealer goes first
 		$dhand->draw();
-		$msg = "[" . $dhand->count_as_string() . "] : " . $dhand->as_string();
-		_privatesay($self, $player, "Dealer has: $msg");
+		$msgd = "[" . $dhand->count_as_string() . "] : " . $dhand->as_string();
+		_privatesay($self, $player, "Dealer has: $msgd");
 		# Dealer shows only one card
 		$dhand->draw();
 		
 		# Player shows both cards
 		$phand->draw();
 		$phand->draw();
-		$msg = "[" . $phand->count_as_string() . "] : " . $phand->as_string();
-		_privatesay($self, $player, "Player has: $msg");
+		$msgp = "[" . $phand->count_as_string() . "] : " . $phand->as_string();
+		_privatesay($self, $player, "Player has: $msgp");
 
+		$self->unset($player);
+		$self->set($player => {
+			bgame	=> 1,
+			shoe	=> $shoe,
+			phand	=> $phand,
+			dhand	=> $dhand,
+		});
 
 		# if (can split) {
 		# split routine goes here
-		# else
+
 		return "Your move -- hit, stand";
 
 	}
 	elsif ($body =~ /hit/) {
-		my $thing = $self->get($player)->{"bgame"};
-		return ("This: $thing");
 
-#		my $hash = $self->get($player);
-#		my $dhand = $hash{"dhand"};
-#		my $phand = $hash{"phand"};
-#		my $bgame = $hash{"bgame"};
-my ($phand, $dhand, $bgame);
+		return "No game started -- .bj to start a new one" unless $self->get($player);
 
-		return "No game started -- $dhand, $phand, $bgame -- .bj to start a new one!" if ($bgame == 0);
+		my $dhand = $self->get($player)->{"dhand"};
+		my $phand = $self->get($player)->{"phand"};
+
 		$phand->draw();
 		
-		my $msg = $phand->as_string();
-		my $count = $phand->count_as_string();
+		my $msgp = $phand->as_string();
+		my $cntp = $phand->count_as_string();
+		my $msgd = $dhand->as_string();
+		my $cntd = $dhand->count_as_string();
+
+#		_privatesay($self, $player, "phandas: $msgp, phandcas: $cntp, dhandas: $msgd, dhandcas: $cntd");
 
 		if ($phand->busted()) {
 
-			$self->set($player)->{"bgame"} = 0;
-			_privatesay($self, $player, "$player draws $msg -- $count!");
+			_privatesay($self, $player, "$player draws $msgp -- $cntp!");
+			$self->unset($player);
 			return "$player lost. Try again!";
 
 		}
 		else {
 
-			_privatesay($self, $player, "Player has: $count : $msg");
+			$self->unset($player);
+			$self->set($player => {
+						dhand => $dhand,
+						phand => $phand,
+						bgame => 1,
+			});
 
-			if ($count == 21) {
+			_privatesay($self, $player, "Player has: $cntp : $msgp");
+
+			if ($cntp == 21) {
 				return "Command: stand";
 			}
 			else {
 				return "Command: hit, stand";
 			}
-
 		}
 
 	}
 	elsif ($body =~ /stand/) {
-		return "Command: stand";
-	}
+
+		return "No game started -- .bj to start a new one" unless $self->get($player);
+
+		my $dhand = $self->get($player)->{"dhand"};
+		my $phand = $self->get($player)->{"phand"};
+		my $pcnt = $phand->count_as_string();
+		_privatesay($self, $player, "Player stands with $pcnt");
+
+		 while(!$dhand->busted() and $dhand->count("soft") < 17) {
+			my $draw = $dhand->draw();
+			my $msgd = $dhand->as_string();
+			my $cntd = $dhand->count_as_string();
+			_privatesay($self, $player, "Dealer draws: $draw - $msgd - $cntd");
+		}
+		
+	}	
+	
 	elsif ($body =~ /split/) {
 		# split
 		return "Command: split";
@@ -112,6 +137,12 @@ my ($phand, $dhand, $bgame);
 
 		return "Stats for $mess->{who}";
 
+	}
+	elsif ($body =~ /.reset/) {
+		my @keys = $self->store_keys;
+		my $msg = join(",", @keys);
+		$self->unset($player);
+		return "Store keys deleted: $msg";
 	}
 }
 
