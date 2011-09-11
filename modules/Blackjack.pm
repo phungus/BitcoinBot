@@ -33,17 +33,15 @@ sub told {
 		my $phand = Games::Blackjack::Hand->new(shoe => $shoe);
 
 ### This may not be right
-#		$self->set($player => {
-		my %hash = (
-			shoe	=> $shoe,
-			phand	=> $phand,
-			dhand	=> $dhand,
-			bgame	=> 1,
+		$self->set($player => {
+			bgame	=> 1}
+#			shoe	=> $shoe,
+#			phand	=> $phand,
+#			dhand	=> $dhand,
 		);
 ###
-		$self->{$player} = \%hash;
 
-		my $test = $self->{$player}{"bgame"};
+		my $test = $self->get($player)->{"bgame"};
 		_privatesay($self, $player, "New BlackJack game for $player: $test");
 
 		# Dealer goes first
@@ -67,7 +65,7 @@ sub told {
 
 	}
 	elsif ($body =~ /hit/) {
-		my $thing = $self->get("$player")->{"bgame"};
+		my $thing = $self->get($player)->{"bgame"};
 		return ("This: $thing");
 
 #		my $hash = $self->get($player);
