@@ -28,89 +28,78 @@ sub told {
 	if ($body =~ /.bj/) {
 
 		my $msg;
-		my $bshoe = Games::Blackjack::Shoe->new(nof_decks => 4);
-		my $dhand = Games::Blackjack::Hand->new(shoe => $bshoe);
-		my $phand = Games::Blackjack::Hand->new(shoe => $bshoe);
+		my $shoe = Games::Blackjack::Shoe->new(nof_decks => 4);
+		my $dhand = Games::Blackjack::Hand->new(shoe => $shoe);
+		my $phand = Games::Blackjack::Hand->new(shoe => $shoe);
 
-
-		$self->say(
-			channel => "msg",
-			who => $player,
-			body => "New BlackJack game for $player"
+### This may not be right
+#		$self->set($player => {
+		my %hash = (
+			shoe	=> $shoe,
+			phand	=> $phand,
+			dhand	=> $dhand,
+			bgame	=> 1,
 		);
+###
+		$self->{$player} = \%hash;
 
+		my $test = $self->{$player}{"bgame"};
+		_privatesay($self, $player, "New BlackJack game for $player: $test");
+
+		# Dealer goes first
 		$dhand->draw();
-#		$self->get($player)->{dhand}->draw();
-		$msg = "[" . $dhand->count_as_string . "] : " . $dhand->as_string();
-		$self->say(
-			channel => "msg",
-			who => $player,
-			body => "Dealer has: $msg"
-		);
-
+		$msg = "[" . $dhand->count_as_string() . "] : " . $dhand->as_string();
+		_privatesay($self, $player, "Dealer has: $msg");
 		# Dealer shows only one card
 		$dhand->draw();
 		
 		# Player shows both cards
 		$phand->draw();
 		$phand->draw();
+		$msg = "[" . $phand->count_as_string() . "] : " . $phand->as_string();
+		_privatesay($self, $player, "Player has: $msg");
 
-		$msg = "[" . $phand->count_as_string . "] : " . $phand->as_string();
-        $self->say(
-            channel => "msg",
-			who => $player,
-			body => "Player has: $msg"
-        );
-
-		$self->set($player => {
-			bshoe => $bshoe,
-			phand => $phand,
-			dhand => $dhand,
-			bgame => 1
-		});
 
 		# if (can split) {
-		# split routine
+		# split routine goes here
 		# else
 		return "Your move -- hit, stand";
 
 	}
-	elsif ($body =~ /.bjstats/) {
-
-		return "Stats for $mess->{who}";
-
-	}
 	elsif ($body =~ /hit/) {
+		my $thing = $self->get("$player")->{"bgame"};
+		return ("This: $thing");
 
-		my $pstore = \$self->get($player);
-		my $dhand = $$pstore->{"dhand"};
-		my $phand = $$pstore->{"phand"};
-		my $bgame = $$pstore->{"bgame"};
+#		my $hash = $self->get($player);
+#		my $dhand = $hash{"dhand"};
+#		my $phand = $hash{"phand"};
+#		my $bgame = $hash{"bgame"};
+my ($phand, $dhand, $bgame);
 
-		return "No game started -- .bj to start a new one!" if ($bgame == 0);
+		return "No game started -- $dhand, $phand, $bgame -- .bj to start a new one!" if ($bgame == 0);
+		$phand->draw();
+		
+		my $msg = $phand->as_string();
+		my $count = $phand->count_as_string();
 
-		my $msg = $phand->count_as_string();
+		if ($phand->busted()) {
 
-		if ($msg > 21) {
-			$self->say(
-        	    channel => "msg",
-				who => $player,
-				body => "$player busts with: $msg"
-        	);	
+			$self->set($player)->{"bgame"} = 0;
+			_privatesay($self, $player, "$player draws $msg -- $count!");
 			return "$player lost. Try again!";
+
 		}
 		else {
-			$self->say(
-	            channel => "msg",
-				who => $player,
-				body => "$player now has: $msg"
-	        );
-			if ($msg == 21) {
+
+			_privatesay($self, $player, "Player has: $count : $msg");
+
+			if ($count == 21) {
 				return "Command: stand";
 			}
 			else {
 				return "Command: hit, stand";
 			}
+
 		}
 
 	}
@@ -121,8 +110,22 @@ sub told {
 		# split
 		return "Command: split";
 	}
+	elsif ($body =~ /.bjstats/) {
+
+		return "Stats for $mess->{who}";
+
+	}
 }
 
+
+sub _privatesay {
+	my ($self, $player, $body) = @_;
+	$self->say(
+		channel	=> "msg",
+		who 	=> $player,
+		body	=> $body
+	);
+}
 
 1;
 
