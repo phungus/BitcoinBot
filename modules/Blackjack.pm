@@ -25,10 +25,9 @@ sub told {
 
 	my $player = "$mess->{who}";
 	
-	if ($body =~ /.bj/) {
+	if ($body =~ /^.bj$/) {
 
 		if ($self->var($player)) {
-			_privatesay($self, $player, "Have player hash");
 			if ($self->get($player)->{"bgame"} == 1) {
 				return "Game already started! Command: hit, stand";
 			}
@@ -41,32 +40,36 @@ sub told {
 		my $dhand = Games::Blackjack::Hand->new(shoe => $shoe);
 		my $phand = Games::Blackjack::Hand->new(shoe => $shoe);
 
-		# Dealer goes first
 		$dhand->draw();
-		$msgd = "[" . $dhand->count_as_string() . "] : " . $dhand->as_string();
+		$msgd = $dhand->count_as_string() . " - " . $dhand->as_string();
 		_privatesay($self, $player, "Dealer has: $msgd");
-		# Dealer shows only one card
 		$dhand->draw();
 		
-		# Player shows both cards
 		$phand->draw();
 		$phand->draw();
-		$msgp = "[" . $phand->count_as_string() . "] : " . $phand->as_string();
-		_privatesay($self, $player, "Player has: $msgp");
+		$msgp = $phand->count_as_string() . " - " . $phand->as_string();
+		_privatesay($self, $player, "$player has $msgp");
+#		my $games = $self->get($player)->{"games"};
 
 		$self->unset($player);
-		$self->set($player => {
-			bgame	=> 1,
-			shoe	=> $shoe,
-			phand	=> $phand,
-			dhand	=> $dhand,
-		});
+		if ($phand->count("hard") == 21) {
+			_privatesay($self, $player, "$player wins with Blackjack!");
+		}
+		else {
+			$self->set($player => {
+				bgame	=> 1,
+				shoe	=> $shoe,
+				phand	=> $phand,
+				dhand	=> $dhand,
+#				games	=> $games++,
+			});
 
 		# if (can split) {
-		# split routine goes here
+		# split routine goes below
+		# }
 
-		return "Your move -- hit, stand";
-
+			return "Commands: hit, stand";
+		}
 	}
 	elsif ($body =~ /hit/) {
 
@@ -74,6 +77,7 @@ sub told {
 
 		my $dhand = $self->get($player)->{"dhand"};
 		my $phand = $self->get($player)->{"phand"};
+		my $hit = $self->get($player)->{"hit"} ||= 0;
 
 		$phand->draw();
 		
@@ -82,11 +86,9 @@ sub told {
 		my $msgd = $dhand->as_string();
 		my $cntd = $dhand->count_as_string();
 
-#		_privatesay($self, $player, "phandas: $msgp, phandcas: $cntp, dhandas: $msgd, dhandcas: $cntd");
-
 		if ($phand->busted()) {
 
-			_privatesay($self, $player, "$player draws $msgp -- $cntp!");
+			_privatesay($self, $player, "$player has $cntp - $msgp");
 			$self->unset($player);
 			return "$player lost. Try again!";
 
@@ -95,18 +97,21 @@ sub told {
 
 			$self->unset($player);
 			$self->set($player => {
-						dhand => $dhand,
-						phand => $phand,
-						bgame => 1,
+						dhand 	=> $dhand,
+						phand 	=> $phand,
+						bgame 	=> 1,
+						hit 	=> 1,
 			});
 
-			_privatesay($self, $player, "Player has: $cntp : $msgp");
+			_privatesay($self, $player, "$player has: $cntp - $msgp");
 
-			if ($cntp == 21) {
-				return "Command: stand";
-			}
-			else {
-				return "Command: hit, stand";
+			unless ($hit == 1) {
+				if ($cntp == 21 || $cntp eq "Blackjack") {
+					return "Command: stand";
+				}
+				else {
+					return "Command: hit, stand";
+				}
 			}
 		}
 
@@ -117,16 +122,31 @@ sub told {
 
 		my $dhand = $self->get($player)->{"dhand"};
 		my $phand = $self->get($player)->{"phand"};
+		my $pmsg = $phand->as_string();
 		my $pcnt = $phand->count_as_string();
-		_privatesay($self, $player, "Player stands with $pcnt");
+		_privatesay($self, $player, "$player stands with $pcnt - $pmsg");
+
+		my $dmsg = $dhand->as_string();
+		my $dcnt = $dhand->count_as_string();
+		_privatesay($self, $player, "Dealer has: $dcnt - $dmsg");
 
 		 while(!$dhand->busted() and $dhand->count("soft") < 17) {
-			my $draw = $dhand->draw();
+			$dhand->draw();
 			my $msgd = $dhand->as_string();
 			my $cntd = $dhand->count_as_string();
-			_privatesay($self, $player, "Dealer draws: $draw - $msgd - $cntd");
+			_privatesay($self, $player, "Dealer has: $cntd - $msgd");
 		}
-		
+
+		my $dfcnt = $dhand->count("hard");
+		my $pfcnt = $phand->count("hard");
+		$dcnt = $dhand->count_as_string();
+		if ($pfcnt > $dfcnt) {
+			_privatesay($self, $player, "$player wins with $pcnt!");
+		}
+		else {
+			_privatesay($self, $player, "Dealer wins with $dcnt!");
+		}
+		$self->unset($player);
 	}	
 	
 	elsif ($body =~ /split/) {
@@ -134,16 +154,19 @@ sub told {
 		return "Command: split";
 	}
 	elsif ($body =~ /.bjstats/) {
-
-		return "Stats for $mess->{who}";
+#		$games = $self->get($player)->{"games"};
+		return "Stats for $player -- ";
+# Number of games played: $games";
 
 	}
-	elsif ($body =~ /.reset/) {
+	elsif ($body =~ /~players/) {
 		my @keys = $self->store_keys;
-		my $msg = join(",", @keys);
-		$self->unset($player);
-		return "Store keys deleted: $msg";
+		my $msg = join(" /-/ ", @keys);
+		return "Players: $msg";
 	}
+#	elsif ($body =~ /~announce/) {
+#		$self->tell(
+#	}
 }
 
 
