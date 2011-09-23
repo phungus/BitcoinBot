@@ -159,11 +159,6 @@ sub told {
 # Number of games played: $games";
 
 	}
-	elsif ($body =~ /~players/) {
-		my @keys = $self->store_keys;
-		my $msg = join(" /-/ ", @keys);
-		return "Players: $msg";
-	}
 #	elsif ($body =~ /~announce/) {
 #		$self->tell(
 #	}
