@@ -19,7 +19,10 @@ my $V = "0.1";
 my $configFile = "./BitcoinBot.conf";
 my $config = (!-e $configFile) ? Config::JSON->create($configFile) : Config::JSON->new($configFile);
 
-$config->addToArray("Channels","#BitcoinBot") 		unless ($config->get("Channels"));
+if (!$config->get("Channels")) {
+	$config->addToArray("Channels","#BitcoinBot");
+	$config->addToArray("Channels","#bitcoin-bots");
+}
 $config->set("server","irc.freenode.net") 			unless ($config->get("server"));
 $config->set("port",7000) 							unless ($config->get("port"));
 $config->set("nick","TestBitcoinBot") 				unless ($config->get("nick"));
@@ -49,16 +52,19 @@ print "= BitcoinBot - Version $V  =\n";
 print "=============================\n\n";
 print "Using Config: $configFile\n";
 print "Nick $botNick ($userName)\n";
-print "Channel(s): ";
-print foreach (@channels);
+print "Channel(s)";
+foreach (@channels) {
+	print ", " . $_;
+}
 print "\n";
 print "Connecting to $ircServer on port $ircPort\n"; 
-
+print "URI: $uri\n";
+print "-----------------------------\n\n";
 
 ### Bot Init ###
 
 my $bot = Bot::BasicBot::Pluggable->new(
-    channels	=> @channels,
+    channels	=> [@channels],
     server		=> $ircServer,
 	port		=> $ircPort,
     nick    	=> $botNick,
@@ -71,7 +77,7 @@ my $bot = Bot::BasicBot::Pluggable->new(
 	rpchost		=> $config->get("rpchost"),
 	rpcport		=> $config->get("rpcport"),
 	wallet 		=> Finance::Bitcoin::Wallet->new($uri),
-	loglevel	=> "debug",
+	loglevel	=> "warn",
 	store		=> "DBI",
 	dsn			=> "DBI:mysql:bbbdb",
 	table		=> "bitcoinbot",
