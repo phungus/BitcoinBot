@@ -79,10 +79,10 @@ my $bot = Bot::BasicBot::Pluggable->new(
 	wallet 		=> Finance::Bitcoin::Wallet->new($uri),
 	loglevel	=> "warn",
 	store		=> "DBI",
-	dsn			=> "DBI:mysql:bbbdb",
+	dsn			=> "DBI:mysql:database",
 	table		=> "bitcoinbot",
-	user		=> "bbbdbuser",
-	password	=> "aHh8qvUBDHyXILnI0EVG",
+	user		=> "",
+	password	=> "",
 );
 
 
