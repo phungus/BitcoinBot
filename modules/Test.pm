@@ -3,7 +3,7 @@ package Bot::BasicBot::Pluggable::Module::Test;
 use base qw(Bot::BasicBot::Pluggable::Module);
 use warnings;
 use strict;
-
+use Data::Dumper;
 
 
 our $VERSION = '0.1';
@@ -26,10 +26,10 @@ sub told {
 	return 0 unless defined $body;
     #return if !$self->bot->module->ident( $mess->{who} );
 	#return unless $mess->{address};
-#	return unless $self->authed($mess->{who});
+	return unless $self->authed($mess->{who});
+
 	if ($body =~ /^.testCmd$/) {
-		print "Got TestCmd\n";
-		return ("Receive testCmd");
+		return ("Received testCmd");
 	}
 }
 

@@ -32,6 +32,8 @@ $config->set("rpcuser","bitcoinrpcuser") 			unless ($config->get("rpcuser"));
 $config->set("rpcpass","longbitcoinrpcpassword") 	unless ($config->get("rpcpass"));
 $config->set("rpchost","127.0.0.1") 				unless ($config->get("rpchost"));
 $config->set("rpcport",8332) 						unless ($config->get("rpcport"));
+$config->set("dbuser",'') 							unless ($config->get("dbuser"));
+$config->set("dbpass",'') 							unless ($config->get("dbpass"));
 
 my $uri     = 'http://' . $config->get("rpcuser") .
                     ':' . $config->get("rpcpass") .
@@ -81,8 +83,8 @@ my $bot = Bot::BasicBot::Pluggable->new(
 	store		=> "DBI",
 	dsn			=> "DBI:mysql:database",
 	table		=> "bitcoinbot",
-	user		=> "",
-	password	=> "",
+	user		=> $config->get("dbuser"),
+	password	=> $config->get("dbpass"),
 );
 
 
