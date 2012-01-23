@@ -12,7 +12,8 @@ use strict;
 use Bot::BasicBot::Pluggable;
 use Config::JSON;
 use Finance::Bitcoin;
-
+use DBI;
+use DBIx::AutoReconnect;
 
 my $V = "0.1";
 
@@ -60,7 +61,6 @@ foreach (@channels) {
 }
 print "\n";
 print "Connecting to $ircServer on port $ircPort\n"; 
-print "URI: $uri\n";
 print "-----------------------------\n\n";
 
 ### Bot Init ###
@@ -80,11 +80,18 @@ my $bot = Bot::BasicBot::Pluggable->new(
 	rpcport		=> $config->get("rpcport"),
 	wallet 		=> Finance::Bitcoin::Wallet->new($uri),
 	loglevel	=> "warn",
-	store		=> "DBI",
-	dsn			=> "DBI:mysql:database",
-	table		=> "bitcoinbot",
-	user		=> $config->get("dbuser"),
-	password	=> $config->get("dbpass"),
+#	store		=> "DBI",
+#	dsn			=> "DBI:mysql:bbbdb",
+#	table		=> "bitcoinbot",
+#	user		=> $config->get("dbuser"),
+#	password	=> $config->get("dbpass"),
+	dbh			=> DBIx::AutoReconnect->connect("DBI:mysql:database=bbbdb;host=localhost", $config->get("dbuser"), $config->get("dbpass"),
+						{
+							PrintError => 0,
+							ReconnectTimeout => 5,
+							ReconnectFailure => sub { warn "Unable to reconnect MySQL DB" },
+						},
+					),
 );
 
 
