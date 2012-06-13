@@ -24,7 +24,7 @@ sub told {
     #return if !$self->bot->module->ident( $mess->{who} );
 	#return unless $mess->{address};
 	
-	if ($body =~ /^.t$/) {
+	if ($body =~ /^\.t$/) {
 		my $m = WebService::MtGox->new;
 		my $t = $m->get_ticker;
 		
