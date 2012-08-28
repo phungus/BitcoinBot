@@ -79,7 +79,7 @@ sub told {
 			return "Commands are: hit, stand";
 		}
 	}
-	elsif ($body =~ /hit/) {
+	elsif ($body =~ /^hit$/) {
 
 		return "No game started -- .bj to start a new one" unless $self->get($player);
 
