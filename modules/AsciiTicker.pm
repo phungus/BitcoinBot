@@ -21,8 +21,9 @@ sub told {
 	my ($self, $mess) = @_;
 	my $body = $mess->{body};
 	return 0 unless defined $body;
-    #return if !$self->bot->module->ident( $mess->{who} );
-	#return unless $mess->{address};
+
+	# return if !$self->bot->module->ident( $mess->{who} );
+	# return unless $mess->{address};
 	
 	if ($body =~ /^\.at$/) {
 		my $m = WebService::MtGox->new;
