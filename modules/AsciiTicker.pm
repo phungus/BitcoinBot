@@ -38,8 +38,8 @@ sub told {
 		my $spread = $buy > $sell ? $buy - $sell : $sell - $buy;
 		my $pspread = sprintf("%0.5f", $spread);
 
-		my $tout = `figlet -k -f standard "$last"`;
-		$tout =~ s/^\ /\.\.\./;
+		my $tout = `figlet -k -f small "$last"`;
+		$tout =~ s/^\ /\.\. /;
 		return $tout;
 	}
 }
