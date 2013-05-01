@@ -29,17 +29,17 @@ sub told {
 		my $m = WebService::MtGox->new;
 		my $t = $m->get_ticker;
 		
-		my $last = $t->{ticker}->{last};
-		my $vol = $t->{ticker}->{vol};
-		my $high = $t->{ticker}->{high};
-		my $low = $t->{ticker}->{low};
-		my $buy = $t->{ticker}->{buy};
-		my $sell = $t->{ticker}->{sell};
+		my $last = $t->{return}->{last}->{value};
+		my $vol = $t->{return}->{vol}->{value};
+		my $high = $t->{return}->{high}->{value};
+		my $low = $t->{return}->{low}->{value};
+		my $buy = $t->{return}->{buy}->{value};
+		my $sell = $t->{return}->{sell}->{value};
 		my $spread = $buy > $sell ? $buy - $sell : $sell - $buy;
 		my $pspread = sprintf("%0.5f", $spread);
-
 		my $tout = `figlet -k -f small "$last"`;
 		$tout =~ s/^\ /\.\. /;
+
 		return $tout;
 	}
 }
