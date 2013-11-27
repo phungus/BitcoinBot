@@ -62,7 +62,7 @@ sub told {
 		my $bid = $m->{"bid"};
 		my $ask = $m->{"ask"};
 		my $spread = $bid > $ask ? $bid - $ask : $ask - $bid;
-		my $pspread = sprintf(%0.5f", $spread);
+		my $pspread = sprintf("%0.5f", $spread);
 
                 return "[Bitstamp] Last: $last :: 24h Volume: $vol  High: $high  Low: $low :: Bid: $bid  Ask: $ask  Spread: $pspread";
         }
