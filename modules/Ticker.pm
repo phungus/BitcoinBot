@@ -25,7 +25,7 @@ sub told {
 	#return if !$self->bot->module->ident( $mess->{who} );
 	#return unless $mess->{address};
 	
-	if ($body =~ /^\.t$/) {
+	if ($body =~ /^\.tg$/) {
 		my $m = WebService::MtGox->new;
 		my $t = $m->get_ticker;
 		
@@ -40,7 +40,6 @@ sub told {
 		my $pspread = sprintf("%0.5f", $spread);
 
 		return "[MtGox] Last: $last :: 24h Volume: $vol  High: $high  Low: $low :: Buy: $buy  Sell: $sell  Spread: $pspread";
-
 	}
 	elsif ($body =~ /^.tc$/) {
 		my $url = "https://coinbase.com/api/v1/prices/buy";
@@ -51,9 +50,61 @@ sub told {
 		my $wfee = $m->{"subtotal"}->{"amount"};
 		return "Coinbase Last: $last - Including Fees: $wfee";		
 	}
+	elsif ($body =~ /^.tb$/) {
+                my $url = "https://www.bitstamp.net/api/ticker/";
+                my $res = `/usr/bin/curl -sf $url`;
+                return "No Data from BitStamp" unless defined $res;
+                my $m = decode_json($res);
+                my $last = $m->{"last"};
+                my $high = $m->{"high"};
+		my $low = $m->{"low"};
+		my $vol = $m->{"volume"};
+		my $bid = $m->{"bid"};
+		my $ask = $m->{"ask"};
+		my $spread = $bid > $ask ? $bid - $ask : $ask - $bid;
+		my $pspread = sprintf(%0.5f", $spread);
+
+                return "[Bitstamp] Last: $last :: 24h Volume: $vol  High: $high  Low: $low :: Bid: $bid  Ask: $ask  Spread: $pspread";
+        }
+	elsif ($body =~ /^.t$/) {
+		my $goxlast = &_last_gox;
+		my $cblast = &_last_cb;
+		my $bslast = &_last_bs;
+
+		return "[MtGox] $goxlast  ::  [Coinbase] $cblast  ::  [Bitstamp] $bslast";
+	}
+
 
 }
 
+
+sub _last_gox {
+                my $m = WebService::MtGox->new;
+                my $t = $m->get_ticker;
+                my $last = $t->{return}->{last}->{value};
+		return $last;
+}
+
+
+sub _last_cb {
+                my $url = "https://coinbase.com/api/v1/prices/buy";
+                my $res = `/usr/bin/curl -sf $url`;
+                return "No Data from Coinbase" unless defined $res;
+                my $m = decode_json($res);
+                my $last = $m->{"amount"};
+                return $last;
+
+}
+
+
+sub _last_bs {
+		my $url = "https://www.bitstamp.net/api/ticker/";
+		my $res = `/usr/bin/curl -sf $url`;
+		return "No Data from BitStamp" unless defined $res;
+		my $m = decode_json($res);
+		my $last = $m->{"amount"};
+		return $last;
+}
 
 1;
 
