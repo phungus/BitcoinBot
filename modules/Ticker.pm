@@ -48,7 +48,7 @@ sub told {
 		my $m = decode_json($res);
 		my $last = $m->{"amount"};
 		my $wfee = $m->{"subtotal"}->{"amount"};
-		return "Coinbase Last: $last - Including Fees: $wfee";		
+		return "[Coinbase] Last: $last - Including Fees: $wfee";		
 	}
 	elsif ($body =~ /^.tb$/) {
                 my $url = "https://www.bitstamp.net/api/ticker/";
@@ -102,7 +102,7 @@ sub _last_bs {
 		my $res = `/usr/bin/curl -sf $url`;
 		return "No Data from BitStamp" unless defined $res;
 		my $m = decode_json($res);
-		my $last = $m->{"amount"};
+		my $last = $m->{"last"};
 		return $last;
 }
 
