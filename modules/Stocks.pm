@@ -25,6 +25,7 @@ sub told {
 	if ($body =~ /^\.s [A-Za-z0-9]{1,4}$/) {
 		my $symbol = $body;
 		$symbol =~ s/^\.s\s//;
+		$symbol = uc($symbol);
 
 		my $q = Finance::Quote->new();
 		my %s = $q->fetch('usa', $symbol);

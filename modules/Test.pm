@@ -24,12 +24,21 @@ sub told {
 	my ($self, $mess) = @_;
 	my $body = $mess->{body};
 	return 0 unless defined $body;
-    #return if !$self->bot->module->ident( $mess->{who} );
+	#return if !$self->bot->module->ident( $mess->{who} );
 	#return unless $mess->{address};
 	return unless $self->authed($mess->{who});
 
-	if ($body =~ /^.testCmd$/) {
-		return ("Received testCmd");
+	if ($body =~ /^.ts$/) {
+		if ($self->var("tickerStats")) {
+			my $output = $self->get("tickerStats")->{"btc_last"};					
+			return("TickerStats: $output");
+		}
+		else {
+			$self->unset("tickerstats");
+			$self->set("tickerStats" => { btc_last => 100, });
+			return("No tickerStats set, so setting it");
+		}
+
 	}
 }
 
