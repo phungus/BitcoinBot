@@ -4,7 +4,6 @@ use base qw(Bot::BasicBot::Pluggable::Module);
 use warnings;
 use strict;
 use WebService::MtGox;
-use LWP::Simple;
 use JSON qw( decode_json );
 
 our $VERSION = '0.1';
@@ -26,11 +25,7 @@ sub told {
 	#return if !$self->bot->module->ident( $mess->{who} );
 	#return unless $mess->{address};
 	
-<<<<<<< HEAD
-	if ($body =~ /^.tg$/) {
-=======
 	if ($body =~ /^\.t$/) {
->>>>>>> e8e416000c532cd831fe973d3385e67e13d3d6ac
 		my $m = WebService::MtGox->new;
 		my $t = $m->get_ticker;
 		
@@ -52,8 +47,9 @@ sub told {
 		my $res = `/usr/bin/curl -sf $url`;
 		return "No Data from Coinbase" unless defined $res;
 		my $m = decode_json($res);
-		my $last = $m{"amount"};
-		return "Last: $last";		
+		my $last = $m->{"amount"};
+		my $wfee = $m->{"subtotal"}->{"amount"};
+		return "Coinbase Last: $last - Including Fees: $wfee";		
 	}
 
 }
