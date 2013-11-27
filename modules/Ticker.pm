@@ -4,6 +4,8 @@ use base qw(Bot::BasicBot::Pluggable::Module);
 use warnings;
 use strict;
 use WebService::MtGox;
+use LWP::Simple;
+use JSON qw( decode_json );
 
 our $VERSION = '0.1';
 
@@ -21,10 +23,10 @@ sub told {
 	my ($self, $mess) = @_;
 	my $body = $mess->{body};
 	return 0 unless defined $body;
-    #return if !$self->bot->module->ident( $mess->{who} );
+	#return if !$self->bot->module->ident( $mess->{who} );
 	#return unless $mess->{address};
 	
-	if ($body =~ /^.t$/) {
+	if ($body =~ /^.tg$/) {
 		my $m = WebService::MtGox->new;
 		my $t = $m->get_ticker;
 		
@@ -39,6 +41,15 @@ sub told {
 
 		return "[MtGox] Last: $last :: 24h Volume: $vol  High: $high  Low: $low :: Buy: $buy  Sell: $sell  Spread: $pspread";
 	}
+	elsif ($body =~ /^.tc$/) {
+		my $url = "https://coinbase.com/api/v1/prices/buy";
+		my $res = `/usr/bin/curl -sf $url`;
+		return "No Data from Coinbase" unless defined $res;
+		my $m = decode_json($res);
+		my $last = $m{"amount"};
+		return "Last: $last";		
+	}
+
 }
 
 
