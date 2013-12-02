@@ -25,7 +25,7 @@ sub told {
 	#return if !$self->bot->module->ident( $mess->{who} );
 	#return unless $mess->{address};
 	
-	if ($body =~ /^\.tg$/) {
+	if ($body =~ /^\.t.g$/) {
 		my $m = WebService::MtGox->new;
 		my $t = $m->get_ticker;
 		
@@ -41,7 +41,7 @@ sub told {
 
 		return "[MtGox] Last: $last :: 24h Volume: $vol  High: $high  Low: $low :: Buy: $buy  Sell: $sell  Spread: $pspread";
 	}
-	elsif ($body =~ /^.tc$/) {
+	elsif ($body =~ /^.t.c$/) {
 		my $url = "https://coinbase.com/api/v1/prices/buy";
 		my $res = `/usr/bin/curl -sf $url`;
 		return "No Data from Coinbase" unless defined $res;
@@ -50,7 +50,7 @@ sub told {
 		my $wfee = $m->{"subtotal"}->{"amount"};
 		return "[Coinbase] Last: $last - Including Fees: $wfee";		
 	}
-	elsif ($body =~ /^.tb$/) {
+	elsif ($body =~ /^.t.b$/) {
                 my $url = "https://www.bitstamp.net/api/ticker/";
                 my $res = `/usr/bin/curl -sf $url`;
                 return "No Data from BitStamp" unless defined $res;
